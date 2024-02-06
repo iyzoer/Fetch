@@ -1,0 +1,33 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - '**'
+    tags-ignore:
+      - '*.*'
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-version: ['7.3', '7.4', '8.0', '8.1']
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup PHP ${{ matrix.php-version }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+      - name: Composer cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ env.HOME }}/.composer/cache
+          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+      - name: Install dependencies
+        run: make deps
+      - name: Run tests
+        run: make tests
+      - name: Coverage
+        run: make coverage
